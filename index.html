@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NUT2001</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <span class="site-logo">NUT2001</span>
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="home">Home</button>
+        <button class="tab-btn" data-tab="quizzes">Quizzes</button>
+        <button class="tab-btn" data-tab="community">Community</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===================================================
+         TAB: HOME — Video + post-video quiz
+    =================================================== -->
+    <div id="tab-home" class="tab-panel active">
+      <section class="accent-teal">
+        <div class="section-label">Lesson</div>
+        <h2>Watch the Video</h2>
+        <div class="video-container">
+          <iframe
+            src="https://drive.google.com/file/d/1DSN51DVxpZszx41bWc3aV3HKM7CFOq9r/preview"
+            allow="autoplay"
+            allowfullscreen>
+          </iframe>
+        </div>
+        <p class="video-note">Watch the video above, then click the button below to take the quiz.</p>
+        <button class="btn-primary watched-btn" onclick="showPostVideoQuiz()">I've finished watching &#8594;</button>
+      </section>
+
+      <!-- Post-video quiz (hidden until video ends) -->
+      <section id="post-video-quiz" class="accent-coral hidden">
+        <div class="section-label">Quick Quiz</div>
+        <h2>Answer before time runs out!</h2>
+
+        <div class="countdown-bar-wrap">
+          <div id="countdown-bar" class="countdown-bar"></div>
+        </div>
+        <p id="countdown-text" class="countdown-text">10</p>
+
+        <div class="quiz-question" id="pvq-card" data-correct="3">
+          <p>What is one benefit of eating breakfast?</p>
+          <label><input type="radio" name="pvq" value="0" /> A. Better focus</label>
+          <label><input type="radio" name="pvq" value="1" /> B. More energy</label>
+          <label><input type="radio" name="pvq" value="2" /> C. Better appetite control</label>
+          <label><input type="radio" name="pvq" value="3" /> D. All of the above</label>
+        </div>
+
+        <button id="pvq-submit" onclick="submitPostVideoQuiz()">Submit Answer</button>
+        <div id="pvq-result"></div>
+      </section>
+    </div>
+
+    <!-- ===================================================
+         TAB: QUIZZES
+    =================================================== -->
+    <div id="tab-quizzes" class="tab-panel hidden">
+
+      <!-- True / False -->
+      <section class="accent-teal">
+        <div class="section-label">True or False</div>
+        <h2>Quick Check</h2>
+
+        <div class="interaction-card" id="interaction-1">
+          <p class="question">Statement: Vitamins are macronutrients.</p>
+          <div class="btn-group">
+            <button class="btn-choice" onclick="checkAnswer(this, false)">True</button>
+            <button class="btn-choice" onclick="checkAnswer(this, true)">False</button>
+          </div>
+          <p class="feedback hidden"></p>
+        </div>
+
+        <div class="interaction-card" id="interaction-2">
+          <p class="question">Statement: Water is essential for human survival.</p>
+          <div class="btn-group">
+            <button class="btn-choice" onclick="checkAnswer(this, true)">True</button>
+            <button class="btn-choice" onclick="checkAnswer(this, false)">False</button>
+          </div>
+          <p class="feedback hidden"></p>
+        </div>
+      </section>
+
+      <!-- Multiple Choice -->
+      <section class="accent-rose">
+        <div class="section-label">Multiple Choice</div>
+        <h2>Nutrition Quiz</h2>
+        <div id="quiz-container"></div>
+        <button id="submit-quiz" onclick="submitQuiz()">Submit Quiz</button>
+        <div id="quiz-result"></div>
+      </section>
+    </div>
+
+    <!-- ===================================================
+         TAB: COMMUNITY
+    =================================================== -->
+    <div id="tab-community" class="tab-panel hidden">
+      <section class="accent-rose">
+        <div class="section-label">Community</div>
+        <h2>Share with the Class</h2>
+
+        <form class="post-form" onsubmit="submitPost(event)">
+          <input type="text" id="post-author" placeholder="Your name" required />
+          <textarea id="post-text" placeholder="Write something..." rows="3" required></textarea>
+          <label class="file-label">
+            <input type="file" id="post-image" accept="image/*" onchange="previewImage(event)" />
+            <span>+ Attach image</span>
+          </label>
+          <img id="image-preview" class="image-preview hidden" alt="preview" />
+          <button type="submit" class="btn-primary">Post</button>
+        </form>
+      </section>
+
+      <div id="post-feed"></div>
+    </div>
+
+  </main>
+
+  <script src="js/interactions.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/community.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
