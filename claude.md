@@ -61,3 +61,22 @@ Pastel accent sections:
 - **Swap video:** change `VIDEO_ID` in `index.html` line ~20, or uncomment the `<video>` tag for local files
 - **Edit True/False questions:** update `.interaction-card` blocks in `index.html`; set `checkAnswer(this, true/false)` — `true` = this button is the correct answer
 - **Edit quiz questions:** update the `quizData` array in `js/quiz.js` (question, options[], correctIndex)
+
+---
+
+## Deployment (2026-04-08)
+
+- Installed **git** via `sudo apt-get install -y git`
+- Configured git: `user.name = cxxclk`, `user.email = cxxclk@gmail.com`
+- Initialized repo, committed all files, pushed to **github.com/cxxclk/NUT2001**
+- Enabled **GitHub Pages** — site is live at: https://cxxclk.github.io/NUT2001/
+- Auth: Personal Access Token (classic) with `repo` scope
+
+### Useful commands
+```bash
+# Push future changes
+cd /home/clk/NUT2001
+git add .
+git commit -m "your message"
+git push
+```
