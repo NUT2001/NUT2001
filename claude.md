@@ -58,9 +58,39 @@ Pastel accent sections:
 
 ## Key Editing Points
 
-- **Swap video:** change `VIDEO_ID` in `index.html` line ~20, or uncomment the `<video>` tag for local files
+- **Swap video:** update the `src` on the `<iframe>` inside `#stage-video1` or `#stage-video2` in `index.html`
+- **Edit Q1 (radio):** update the `<label>` options inside `#q1-card` and set `data-correct` to the correct 0-based index
+- **Edit Q2 (image choice):** update `.image-choice` text/emoji inside `#stage-quiz2`; correct answer is hardcoded as `'B'` in `submitQuiz2()` in `js/main.js`
 - **Edit True/False questions:** update `.interaction-card` blocks in `index.html`; set `checkAnswer(this, true/false)` — `true` = this button is the correct answer
-- **Edit quiz questions:** update the `quizData` array in `js/quiz.js` (question, options[], correctIndex)
+- **Edit multiple-choice quiz:** update the `quizData` array in `js/quiz.js` (question, options[], correctIndex)
+- **Edit authors:** update `.author-card` entries in `index.html` (name, ID, initials in avatar)
+
+---
+
+## Page Rebuild (2026-04-08)
+
+Rebuilt the full page per `webpage.md`:
+
+### Tabs
+| Tab | ID | Content |
+|---|---|---|
+| Home | `tab-home` | Video → Quiz flow |
+| Dora Q&A | `tab-doraqna` | True/False + Multiple Choice |
+| Forum | `tab-forum` | Post feed with image upload & comments |
+| Authors | `tab-authors` | 5 course authors with student IDs |
+
+### Home flow (5 stages)
+1. **Video 1** (`stage-video1`) — Google Drive iframe + "I've finished watching" button
+2. **Q1** (`stage-quiz1`) — 15s countdown, tick sound, radio options; 1 point
+3. **Video 2** (`stage-video2`) — second iframe + "I've finished watching" button
+4. **Q2** (`stage-quiz2`) — 15s countdown, tick sound, image choice cards side-by-side; 1 point
+5. **End** (`stage-end`) — scoreboard (x/2), end-of-session message, two lesson preview cards
+
+### Tick sound
+Generated via Web Audio API in `playTick()` (`js/main.js`) — no audio file needed.
+
+### Score tracking
+`totalScore` var in `js/main.js` accumulates across both questions, shown in scoreboard.
 
 ---
 
