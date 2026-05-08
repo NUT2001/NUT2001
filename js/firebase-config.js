@@ -7,6 +7,9 @@ import {
   getFirestore, collection, addDoc, deleteDoc, doc, updateDoc,
   arrayUnion, query, orderBy, onSnapshot, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import {
+  getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA8GaoZ5aUIAB-OkwD8bJCCK6JcCLjmZYw",
@@ -20,11 +23,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 export {
   signInWithPopup, signOut, onAuthStateChanged,
   collection, addDoc, deleteDoc, doc, updateDoc,
-  arrayUnion, query, orderBy, onSnapshot, serverTimestamp
+  arrayUnion, query, orderBy, onSnapshot, serverTimestamp,
+  ref, uploadBytes, getDownloadURL, deleteObject
 };
 
 // Paste your Firebase Auth UID here after first sign-in. Until set, no one

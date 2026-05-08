@@ -1,10 +1,13 @@
 /* ===== COMMUNITY FEED (Firestore + Google Auth) ===== */
 import {
-  auth, db, googleProvider, OWNER_UID,
+  auth, db, storage, googleProvider, OWNER_UID,
   signInWithPopup, signOut, onAuthStateChanged,
   collection, addDoc, deleteDoc, doc, updateDoc,
-  arrayUnion, query, orderBy, onSnapshot, serverTimestamp
+  arrayUnion, query, orderBy, onSnapshot, serverTimestamp,
+  ref, uploadBytes, getDownloadURL, deleteObject
 } from "./firebase-config.js";
+
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
 let currentUser = null;
 let cachedPosts = [];
@@ -64,42 +67,55 @@ async function submitPost(e) {
   const file = document.getElementById('post-image').files[0];
   if (!text && !file) return;
 
-  if (file && file.size > 500 * 1024) {
-    alert("Image is too large (>500KB). Pick a smaller image or skip it.");
+  if (file && file.size > MAX_IMAGE_BYTES) {
+    alert(`Image is too large (>${MAX_IMAGE_BYTES / 1024 / 1024}MB). Pick a smaller one.`);
     return;
   }
 
-  let imageData = null;
-  if (file) {
-    imageData = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = ev => resolve(ev.target.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const originalLabel = submitBtn ? submitBtn.textContent : '';
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = file ? 'Uploading…' : 'Posting…'; }
 
   try {
+    let imageURL = null;
+    let imagePath = null;
+    if (file) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      imagePath = `post-images/${currentUser.uid}/${Date.now()}-${safeName}`;
+      const storageRef = ref(storage, imagePath);
+      await uploadBytes(storageRef, file, { contentType: file.type });
+      imageURL = await getDownloadURL(storageRef);
+    }
+
     await addDoc(collection(db, POSTS_COL), {
       author: currentUser.displayName || currentUser.email || 'anon',
       authorUid: currentUser.uid,
       text,
-      image: imageData,
+      image: imageURL,
+      imagePath,
       comments: [],
       createdAt: serverTimestamp()
     });
+
     e.target.reset();
     const preview = document.getElementById('image-preview');
     preview.classList.add('hidden');
     preview.src = '';
   } catch (err) {
     alert("Post failed: " + err.message);
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalLabel || 'Post'; }
   }
 }
 
 async function deletePost(postId) {
   if (!confirm("Delete this post?")) return;
+  const post = cachedPosts.find(p => p.id === postId);
   try {
+    if (post && post.imagePath) {
+      try { await deleteObject(ref(storage, post.imagePath)); }
+      catch (e) { console.warn("[forum] image delete failed (continuing):", e); }
+    }
     await deleteDoc(doc(db, POSTS_COL, postId));
   } catch (err) {
     alert("Delete failed: " + err.message);
