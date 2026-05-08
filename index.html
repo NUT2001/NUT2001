@@ -175,12 +175,18 @@
         <div class="section-label">Forum</div>
         <h2>Share with the Class</h2>
 
-        <form class="post-form" onsubmit="submitPost(event)">
-          <input type="text" id="post-author" placeholder="Your name" required />
-          <textarea id="post-text" placeholder="Write something..." rows="3" required></textarea>
+        <div id="forum-auth-bar" class="forum-auth-bar"></div>
+
+        <div id="login-prompt" class="login-prompt">
+          <p>Sign in with Google to post and comment.</p>
+          <button class="btn-primary" onclick="loginGoogle()">Sign in with Google</button>
+        </div>
+
+        <form id="post-form" class="post-form hidden" onsubmit="submitPost(event)">
+          <textarea id="post-text" placeholder="Write something..." rows="3"></textarea>
           <label class="file-label">
             <input type="file" id="post-image" accept="image/*" onchange="previewImage(event)" />
-            <span>+ Attach image</span>
+            <span>+ Attach image (max 500KB)</span>
           </label>
           <img id="image-preview" class="image-preview hidden" alt="preview" />
           <button type="submit" class="btn-primary">Post</button>
@@ -241,7 +247,7 @@
 
   <script src="js/interactions.js"></script>
   <script src="js/quiz.js"></script>
-  <script src="js/community.js"></script>
+  <script type="module" src="js/community.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

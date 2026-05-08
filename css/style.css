@@ -592,3 +592,17 @@ h2 {
 @media (max-width: 480px) {
   .tab-btn { padding: 7px 12px; font-size: 13px; }
 }
+
+/* ===== Forum auth + admin (Firestore version) ===== */
+.forum-auth-bar { display: flex; align-items: center; gap: 12px; padding: 8px 0; flex-wrap: wrap; }
+.auth-greeting { font-size: 14px; }
+.owner-badge { background: #ff5757; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 4px; }
+.btn-secondary { padding: 6px 12px; background: #eee; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.btn-secondary:hover { background: #ddd; }
+.btn-delete { margin-left: auto; background: transparent; border: none; cursor: pointer; font-size: 18px; padding: 4px 8px; }
+.btn-delete:hover { background: #ffe5e5; border-radius: 4px; }
+.login-prompt { text-align: center; padding: 16px; background: #fff8f0; border: 1px dashed #f0c8a0; border-radius: 8px; margin: 12px 0; }
+.login-prompt p { margin: 0 0 12px; }
+.comment-author { margin-right: 6px; color: #555; }
+.post-byline { display: flex; flex-direction: column; }
+.post-header { display: flex; align-items: center; gap: 10px; }
