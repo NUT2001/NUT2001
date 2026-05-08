@@ -3,251 +3,105 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NUT2001</title>
+  <title>NUT2001 Nutrition Education</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-  <!-- ===== HEADER ===== -->
-  <header class="site-header">
-    <div class="header-inner">
-      <span class="site-logo">NUT2001</span>
-      <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="home">Home</button>
-        <button class="tab-btn" data-tab="doraqna">Dora Q&amp;A</button>
-        <button class="tab-btn" data-tab="forum">Forum</button>
-        <button class="tab-btn" data-tab="authors">Authors</button>
+  <!-- ===== TOP NAV ===== -->
+  <header class="top-nav">
+    <div class="nav-inner">
+      <span class="brand">NUT2001</span>
+      <nav class="nav-tabs">
+        <button class="nav-link active" data-tab="home">Lesson</button>
+        <button class="nav-link" data-tab="forum">Forum</button>
+        <button class="nav-link" data-tab="authors">Authors</button>
       </nav>
     </div>
   </header>
 
-  <main>
+  <main class="page">
 
-    <!-- ===================================================
-         TAB: HOME — Video 1 → Q1 → Video 2 → Q2 → Scoreboard
-    =================================================== -->
-    <div id="tab-home" class="tab-panel active">
+    <!-- ====================================================
+         TAB: HOME  (7-stage lesson flow)
+         ==================================================== -->
+    <section id="tab-home" class="tab-panel active">
 
-      <!-- STAGE 1: Video 1 -->
-      <section id="stage-video1" class="accent-teal">
-        <div class="section-label">Lesson · Video 1 of 2</div>
-        <h2>Watch the Video</h2>
-        <div class="video-container">
-          <iframe
-            src="https://drive.google.com/file/d/1DSN51DVxpZszx41bWc3aV3HKM7CFOq9r/preview"
-            allow="autoplay"
-            allowfullscreen>
-          </iframe>
-        </div>
-        <p class="video-note">Watch the video, then answer a quick question.</p>
-        <button class="btn-primary watched-btn" onclick="startQuiz1()">I've finished watching &#8594;</button>
-      </section>
+      <div class="block block-cream lesson-block">
+        <div class="eyebrow">Nutrition · Lesson</div>
+        <h1 class="display">Breakfast, with Dora.</h1>
+        <p class="subhead">Watch a short clip, answer a quick question, repeat. Your responses are saved for the final scoreboard.</p>
 
-      <!-- STAGE 2: Q1 -->
-      <section id="stage-quiz1" class="accent-coral hidden">
-        <div class="section-label">Dora Q&amp;A · Question 1</div>
-        <h2>Answer before time runs out!</h2>
-        <div class="countdown-bar-wrap">
-          <div id="countdown-bar" class="countdown-bar"></div>
-        </div>
-        <p id="countdown-text" class="countdown-text">15</p>
-        <div class="quiz-question" id="q1-card" data-correct="3">
-          <p>What is one benefit of eating breakfast?</p>
-          <label><input type="radio" name="q1" value="0" /> A. Better focus</label>
-          <label><input type="radio" name="q1" value="1" /> B. More energy</label>
-          <label><input type="radio" name="q1" value="2" /> C. Better appetite control</label>
-          <label><input type="radio" name="q1" value="3" /> D. All of the above</label>
-        </div>
-        <button id="q1-submit" class="btn-primary" onclick="submitQuiz1()">Submit Answer</button>
-        <div id="q1-result"></div>
-      </section>
+        <div id="stage-host" class="stage-host"></div>
+      </div>
 
-      <!-- STAGE 3: Video 2 -->
-      <section id="stage-video2" class="accent-teal hidden">
-        <div class="section-label">Lesson · Video 2 of 2</div>
-        <h2>Keep Watching</h2>
-        <div class="video-container">
-          <iframe
-            src="https://drive.google.com/file/d/1wTE0dx3QE3OjlbkMyFuozPESVlfQ83D3/preview"
-            allow="autoplay"
-            allowfullscreen>
-          </iframe>
-        </div>
-        <p class="video-note">Watch the video, then answer another quick question.</p>
-        <button class="btn-primary watched-btn" onclick="startQuiz2()">I've finished watching &#8594;</button>
-      </section>
+    </section>
 
-      <!-- STAGE 4: Q2 -->
-      <section id="stage-quiz2" class="accent-coral hidden">
-        <div class="section-label">Dora Q&amp;A · Question 2</div>
-        <h2>Which breakfast is healthier?</h2>
-        <div class="countdown-bar-wrap">
-          <div id="countdown-bar2" class="countdown-bar"></div>
-        </div>
-        <p id="countdown-text2" class="countdown-text">15</p>
-        <p class="q2-prompt">Tap the healthier breakfast option:</p>
-        <div class="image-choice-row">
-          <div class="image-choice" id="choice-a" onclick="selectImageChoice('A')">
-            <div class="image-choice-img cereal-sugary">🥣</div>
-            <div class="image-choice-label">A. Sugary cereal</div>
-          </div>
-          <div class="image-choice" id="choice-b" onclick="selectImageChoice('B')">
-            <div class="image-choice-img cereal-healthy">🥣🥛🍓</div>
-            <div class="image-choice-label">B. Wholegrain cereal with yoghurt &amp; fruit</div>
-          </div>
-        </div>
-        <button id="q2-submit" class="btn-primary" onclick="submitQuiz2()" style="margin-top:16px">Submit Answer</button>
-        <div id="q2-result"></div>
-      </section>
-
-      <!-- STAGE 5: Scoreboard & End -->
-      <section id="stage-end" class="accent-teal hidden">
-        <div class="section-label">Session Complete</div>
-        <h2>Your Score</h2>
-        <div class="scoreboard">
-          <div class="score-display" id="score-display">0 / 2</div>
-          <div class="score-label" id="score-label"></div>
-        </div>
-        <p class="end-message">This is the end of this session, you can watch more lessons on:</p>
-        <div class="lesson-previews">
-          <div class="lesson-card">
-            <div class="lesson-card-tag">Last session</div>
-            <div class="lesson-card-thumb">🥨</div>
-            <div class="lesson-card-title">Healthy Snacking</div>
-          </div>
-          <div class="lesson-card">
-            <div class="lesson-card-tag">Coming up</div>
-            <div class="lesson-card-thumb">⚖️</div>
-            <div class="lesson-card-title">Weight Management</div>
-          </div>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- ===================================================
-         TAB: DORA Q&A
-    =================================================== -->
-    <div id="tab-doraqna" class="tab-panel hidden">
-
-      <!-- True / False -->
-      <section class="accent-teal">
-        <div class="section-label">True or False</div>
-        <h2>Quick Check</h2>
-
-        <div class="interaction-card" id="interaction-1">
-          <p class="question">Statement: Vitamins are macronutrients.</p>
-          <div class="btn-group">
-            <button class="btn-choice" onclick="checkAnswer(this, false)">True</button>
-            <button class="btn-choice" onclick="checkAnswer(this, true)">False</button>
-          </div>
-          <p class="feedback hidden"></p>
-        </div>
-
-        <div class="interaction-card" id="interaction-2">
-          <p class="question">Statement: Water is essential for human survival.</p>
-          <div class="btn-group">
-            <button class="btn-choice" onclick="checkAnswer(this, true)">True</button>
-            <button class="btn-choice" onclick="checkAnswer(this, false)">False</button>
-          </div>
-          <p class="feedback hidden"></p>
-        </div>
-      </section>
-
-      <!-- Multiple Choice -->
-      <section class="accent-rose">
-        <div class="section-label">Multiple Choice</div>
-        <h2>Nutrition Quiz</h2>
-        <div id="quiz-container"></div>
-        <button id="submit-quiz" onclick="submitQuiz()">Submit Quiz</button>
-        <div id="quiz-result"></div>
-      </section>
-    </div>
-
-    <!-- ===================================================
+    <!-- ====================================================
          TAB: FORUM
-    =================================================== -->
-    <div id="tab-forum" class="tab-panel hidden">
-      <section class="accent-rose">
-        <div class="section-label">Forum</div>
-        <h2>Share with the Class</h2>
+         ==================================================== -->
+    <section id="tab-forum" class="tab-panel hidden">
 
-        <div id="forum-auth-bar" class="forum-auth-bar"></div>
+      <!-- LIST VIEW -->
+      <div id="forum-list-view">
+        <div class="block block-lime forum-block">
+          <div class="eyebrow">Community</div>
+          <h1 class="display">Forum.</h1>
+          <p class="subhead">Share a breakfast photo, leave a comment, give a heart.</p>
 
-        <div id="login-prompt" class="login-prompt">
-          <p>Sign in with Google to post and comment.</p>
-          <button class="btn-primary" onclick="loginGoogle()">Sign in with Google</button>
+          <div id="forum-auth-bar" class="forum-auth-bar"></div>
+
+          <div id="login-prompt" class="login-prompt">
+            <p>Sign in with Google to post and comment.</p>
+            <button class="btn-primary" onclick="loginGoogle()">Sign in with Google</button>
+          </div>
+
+          <form id="post-form" class="post-form hidden" onsubmit="submitPost(event)">
+            <textarea id="post-text" placeholder="Write something…" rows="3"></textarea>
+            <label class="file-label">
+              <input type="file" id="post-image" accept="image/*" onchange="previewImage(event)" />
+              <span>+ Attach image (max 8MB)</span>
+            </label>
+            <img id="image-preview" class="image-preview hidden" alt="preview" />
+            <button type="submit" class="btn-primary">Post</button>
+          </form>
         </div>
 
-        <form id="post-form" class="post-form hidden" onsubmit="submitPost(event)">
-          <textarea id="post-text" placeholder="Write something..." rows="3"></textarea>
-          <label class="file-label">
-            <input type="file" id="post-image" accept="image/*" onchange="previewImage(event)" />
-            <span>+ Attach image (max 8MB)</span>
-          </label>
-          <img id="image-preview" class="image-preview hidden" alt="preview" />
-          <button type="submit" class="btn-primary">Post</button>
-        </form>
-      </section>
+        <div id="post-feed" class="post-feed"></div>
+      </div>
 
-      <div id="post-feed"></div>
-    </div>
+      <!-- DETAIL VIEW (shown when hash is #/post/{id}) -->
+      <div id="forum-detail-view" class="hidden">
+        <button class="btn-tertiary back-btn" onclick="goToForumList()">&larr; Back to forum</button>
+        <div id="post-detail"></div>
+      </div>
 
-    <!-- ===================================================
+    </section>
+
+    <!-- ====================================================
          TAB: AUTHORS
-    =================================================== -->
-    <div id="tab-authors" class="tab-panel hidden">
-      <section class="accent-teal">
-        <div class="section-label">Team</div>
-        <h2>Authors</h2>
+         ==================================================== -->
+    <section id="tab-authors" class="tab-panel hidden">
+      <div class="block block-lilac">
+        <div class="eyebrow">Team</div>
+        <h1 class="display">Authors.</h1>
         <ul class="authors-list">
-          <li class="author-card">
-            <div class="author-avatar">LC</div>
-            <div class="author-info">
-              <span class="author-name">Linkun Chen</span>
-              <span class="author-id">35967862</span>
-            </div>
-          </li>
-          <li class="author-card">
-            <div class="author-avatar">YK</div>
-            <div class="author-info">
-              <span class="author-name">Yiu Wai Kwan</span>
-              <span class="author-id">34625607</span>
-            </div>
-          </li>
-          <li class="author-card">
-            <div class="author-avatar">PL</div>
-            <div class="author-info">
-              <span class="author-name">Pokhou Leong</span>
-              <span class="author-id">34106235</span>
-            </div>
-          </li>
-          <li class="author-card">
-            <div class="author-avatar">JL</div>
-            <div class="author-info">
-              <span class="author-name">Jiayi Liu</span>
-              <span class="author-id">36030279</span>
-            </div>
-          </li>
-          <li class="author-card">
-            <div class="author-avatar">RZ</div>
-            <div class="author-info">
-              <span class="author-name">Rui Zhang</span>
-              <span class="author-id">35641096</span>
-            </div>
-          </li>
+          <li class="author-row"><span class="author-name">Linkun Chen</span><span class="author-id">35967862</span></li>
+          <li class="author-row"><span class="author-name">Yiu Wai Kwan</span><span class="author-id">34625607</span></li>
+          <li class="author-row"><span class="author-name">Pokhou Leong</span><span class="author-id">34106235</span></li>
+          <li class="author-row"><span class="author-name">Jiayi Liu</span><span class="author-id">36030279</span></li>
+          <li class="author-row"><span class="author-name">Rui Zhang</span><span class="author-id">35641096</span></li>
         </ul>
-      </section>
-    </div>
+      </div>
+    </section>
 
   </main>
 
-  <script src="js/interactions.js"></script>
   <script src="js/quiz.js"></script>
-  <script type="module" src="js/community.js"></script>
   <script src="js/main.js"></script>
+  <script type="module" src="js/community.js"></script>
 </body>
 </html>

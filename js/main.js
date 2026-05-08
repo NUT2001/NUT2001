@@ -1,189 +1,337 @@
-/* ===== TAB SWITCHING ===== */
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+/* ===== NUT2001 lesson flow + tab navigation ===== */
+
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  const panel = document.getElementById('tab-' + name);
+  if (panel) panel.classList.remove('hidden');
+  const tab = document.querySelector(`.nav-link[data-tab="${name}"]`);
+  if (tab) tab.classList.add('active');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-link').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.tab;
+      showTab(name);
+      if (name !== 'forum' && location.hash.startsWith('#/post/')) {
+        history.replaceState(null, '', location.pathname);
+      }
+    });
   });
+  startStage(0);
 });
 
-/* ===== TICK SOUND ===== */
-function playTick() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.08);
-  } catch (e) {}
+const VIDEOS = {
+  v1: 'https://drive.google.com/file/d/1lpmDN-GX69J05SUz7m-oHf_gx2Byxuz_/preview',
+  v2: 'https://drive.google.com/file/d/1MxJIJrz0dgwd6CN6bZAZgFNXVydAypTn/preview',
+  v3: 'https://drive.google.com/file/d/17jl90WkbP9mHVyLkTnWBF8fIC_DXI_hP/preview',
+  v4: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
+  v5: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
+  v6: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
+  v7: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
+};
+
+const STAGES = [
+  { kind: 'video', src: VIDEOS.v1 },
+  { kind: 'rating', id: 'rating1', timer: 10,
+    prompt: 'On a scale from 1 to 10, how important is breakfast to you?' },
+
+  { kind: 'video', src: VIDEOS.v2 },
+  { kind: 'mcq', id: 'q1', timer: 15,
+    prompt: 'Which of the following is the best reason to prioritise a nutritious breakfast?',
+    choices: [
+      'It guarantees perfect academic results',
+      'It can support energy, concentration and nutrient intake',
+      'It means you do not need to eat lunch',
+      'It must include all five food groups every morning',
+    ],
+    correct: 1, correctLabel: 'B' },
+
+  { kind: 'video', src: VIDEOS.v3 },
+  { kind: 'mcq', id: 'q2', timer: 15,
+    prompt: 'Which food group and nutrient match is correct?',
+    choices: [
+      'Egg — vegetables & legumes — fibre and vitamins',
+      'Banana — fruit — calcium and protein',
+      'Wholegrain bread — grain food — carbohydrate, fibre and energy',
+      'Yoghurt — protein food — calcium and energy',
+    ],
+    correct: 2, correctLabel: 'C' },
+
+  { kind: 'video', src: VIDEOS.v4 },
+  { kind: 'mcq', id: 'q3', timer: 15,
+    prompt: 'Which breakfast is the healthier choice?',
+    images: [
+      'https://pub-aaa82e9851064d22b954c3ebbafc9ae6.r2.dev/legacy/webp/perfectly-fried-egg-on-whole-grain-toast-6w5jIN9T-v2oNOMWhixGD.webp',
+      'https://pub-aaa82e9851064d22b954c3ebbafc9ae6.r2.dev/legacy/webp/delicious-croissants-with-jam-and-coffee-FTHVyZLCQyPGhFBQnVtOa.webp',
+    ],
+    choices: [
+      'Fried egg on whole grain toast with coffee',
+      'Croissants with jam and coffee',
+    ],
+    correct: 0, correctLabel: 'A' },
+
+  { kind: 'video', src: VIDEOS.v5 },
+  { kind: 'activity',
+    title: "Dora's activity 4",
+    intro: 'During the week:',
+    leadAction: 'Prepare a healthy breakfast and upload it',
+    tail: "Comment on others' posts." },
+
+  { kind: 'video', src: VIDEOS.v6 },
+  { kind: 'activity',
+    title: "Dora's activity 5",
+    intro: 'During the week:',
+    leadAction: 'Find another breakfast option on campus, take a photo and upload it',
+    tail: "Comment on others' posts." },
+
+  { kind: 'video', src: VIDEOS.v7 },
+  { kind: 'rating', id: 'rating2', timer: 10,
+    prompt: 'On a scale from 1 to 10, how important is breakfast to you now?' },
+
+  { kind: 'end' },
+];
+
+const state = {
+  index: 0,
+  score: 0,
+  rating1: null,
+  rating2: null,
+  answers: {},
+};
+
+function startStage(i) {
+  state.index = i;
+  const stage = STAGES[i];
+  const host = document.getElementById('stage-host');
+  if (!host) return;
+  host.innerHTML = '';
+  if (!stage) return;
+  if (stage.kind === 'video')    return renderVideoStage(host, stage);
+  if (stage.kind === 'rating')   return renderRatingStage(host, stage);
+  if (stage.kind === 'mcq')      return renderMCQStage(host, stage);
+  if (stage.kind === 'activity') return renderActivityStage(host, stage);
+  if (stage.kind === 'end')      return renderEndStage(host);
 }
 
-/* ===== SCORE ===== */
-var totalScore = 0;
+function nextStage() { startStage(state.index + 1); }
 
-/* ===== COUNTDOWN ===== */
-var countdownInterval = null;
-var secondsLeft = 15;
-var activeTextId = null;
-var activeBarId = null;
-
-function startCountdown(textId, barId, onExpire) {
-  secondsLeft = 15;
-  activeTextId = textId;
-  activeBarId = barId;
-  updateCountdownUI();
-
-  countdownInterval = setInterval(function () {
-    secondsLeft--;
-    playTick();
-    updateCountdownUI();
-    if (secondsLeft <= 0) {
-      clearInterval(countdownInterval);
-      onExpire();
-    }
-  }, 1000);
+function renderVideoStage(host, stage) {
+  host.innerHTML = `
+    <div class="video-frame">
+      <iframe src="${stage.src}" allow="autoplay" allowfullscreen></iframe>
+    </div>
+    <div class="stage-actions">
+      <button class="btn-primary" id="video-done-btn">I&rsquo;ve finished watching &rarr;</button>
+    </div>
+  `;
+  document.getElementById('video-done-btn').addEventListener('click', () => {
+    if (window.playTick) window.playTick();
+    nextStage();
+  });
 }
 
-function updateCountdownUI() {
-  document.getElementById(activeTextId).textContent = secondsLeft;
-  var pct = (secondsLeft / 15) * 100;
-  var bar = document.getElementById(activeBarId);
-  bar.style.width = pct + '%';
-  bar.style.background = secondsLeft <= 3 ? '#e74c3c' : '#5b76fe';
+function renderRatingStage(host, stage) {
+  host.innerHTML = `
+    <div class="question-card">
+      <div class="countdown-row">
+        <span class="eyebrow" style="margin:0">Rating</span>
+        <div class="countdown-bar-wrap"><div class="countdown-bar" id="cd-bar"></div></div>
+        <span class="countdown-num" id="cd-num">${stage.timer}</span>
+      </div>
+      <p class="q-text">${escapeHtml(stage.prompt)}</p>
+      <div class="rating-row" id="rating-row">
+        ${Array.from({length: 10}, (_, i) => i + 1).map(n =>
+          `<button class="rating-btn" data-val="${n}">${n}</button>`).join('')}
+      </div>
+      <div class="q-feedback hidden" id="q-feedback"></div>
+    </div>
+  `;
+
+  let answered = false;
+  const feedbackEl = document.getElementById('q-feedback');
+  const cd = startCountdown({
+    seconds: stage.timer,
+    barEl: document.getElementById('cd-bar'),
+    numEl: document.getElementById('cd-num'),
+    onDone: () => { if (!answered) finalize(1); }
+  });
+
+  document.querySelectorAll('#rating-row .rating-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (answered) return;
+      document.querySelectorAll('#rating-row .rating-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      finalize(parseInt(btn.dataset.val, 10));
+    });
+  });
+
+  function finalize(value) {
+    answered = true;
+    cd.cancel();
+    state[stage.id] = value;
+    feedbackEl.classList.remove('hidden');
+    feedbackEl.classList.add('neutral');
+    feedbackEl.textContent = 'Thank you for your response.';
+    setTimeout(nextStage, 5000);
+  }
 }
 
-function stopCountdown() {
-  clearInterval(countdownInterval);
-}
+function renderMCQStage(host, stage) {
+  const isImage = !!stage.images;
+  const choicesHtml = isImage
+    ? `<div class="image-choice-row">
+         ${stage.choices.map((c, i) => `
+           <div class="image-choice" data-val="${i}">
+             <img src="${stage.images[i]}" alt="${escapeAttr(c)}" />
+             <div class="image-choice-label">${String.fromCharCode(65+i)}. ${escapeHtml(c)}</div>
+           </div>
+         `).join('')}
+       </div>`
+    : `<div class="choice-list">
+         ${stage.choices.map((c, i) => `
+           <label>
+             <input type="radio" name="${stage.id}" value="${i}" />
+             <span><strong>${String.fromCharCode(65+i)}.</strong> ${escapeHtml(c)}</span>
+           </label>
+         `).join('')}
+       </div>`;
 
-/* ===== STAGE HELPERS ===== */
-function showStage(id) {
-  var el = document.getElementById(id);
-  el.classList.remove('hidden');
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+  host.innerHTML = `
+    <div class="question-card">
+      <div class="countdown-row">
+        <span class="eyebrow" style="margin:0">Dora&rsquo;s Q&amp;A</span>
+        <div class="countdown-bar-wrap"><div class="countdown-bar" id="cd-bar"></div></div>
+        <span class="countdown-num" id="cd-num">${stage.timer}</span>
+      </div>
+      <p class="q-text">${escapeHtml(stage.prompt)}</p>
+      ${choicesHtml}
+      <button class="btn-primary" id="mcq-submit">Submit Answer</button>
+      <div class="q-feedback hidden" id="q-feedback"></div>
+    </div>
+  `;
 
-function hideStage(id) {
-  document.getElementById(id).classList.add('hidden');
-}
+  let answered = false;
+  const feedbackEl = document.getElementById('q-feedback');
+  const submitBtn = document.getElementById('mcq-submit');
+  let selected = null;
 
-/* ===== QUIZ 1 ===== */
-function startQuiz1() {
-  hideStage('stage-video1');
-  showStage('stage-quiz1');
-  startCountdown('countdown-text', 'countdown-bar', function () { submitQuiz1(true); });
-}
-
-function submitQuiz1(auto) {
-  if (auto === undefined) auto = false;
-  stopCountdown();
-
-  var card   = document.getElementById('q1-card');
-  var chosen = card.querySelector('input[name="q1"]:checked');
-  var result = document.getElementById('q1-result');
-  var correct = parseInt(card.dataset.correct, 10);
-
-  card.querySelectorAll('input').forEach(function (i) { i.disabled = true; });
-  document.getElementById('q1-submit').disabled = true;
-  document.getElementById('countdown-text').textContent = '0';
-  document.getElementById('countdown-bar').style.width = '0%';
-
-  var scored = false;
-  if (!chosen) {
-    card.classList.add('wrong');
-    result.textContent = auto
-      ? "⏰ Time's up! The correct answer is D. All of the above."
-      : '⚠ No answer selected. The correct answer is D. All of the above.';
-    result.style.color = '#600000';
+  if (isImage) {
+    document.querySelectorAll('.image-choice').forEach(el => {
+      el.addEventListener('click', () => {
+        if (answered) return;
+        document.querySelectorAll('.image-choice').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+        selected = parseInt(el.dataset.val, 10);
+      });
+    });
   } else {
-    var val = parseInt(chosen.value, 10);
-    if (val === correct) {
-      card.classList.add('correct');
-      result.textContent = '✔ Correct! All of the above are benefits of eating breakfast.';
-      result.style.color = '#00b473';
-      scored = true;
+    document.querySelectorAll(`input[name="${stage.id}"]`).forEach(r => {
+      r.addEventListener('change', () => { selected = parseInt(r.value, 10); });
+    });
+  }
+
+  const cd = startCountdown({
+    seconds: stage.timer,
+    barEl: document.getElementById('cd-bar'),
+    numEl: document.getElementById('cd-num'),
+    onDone: () => { if (!answered) finalize(null); }
+  });
+
+  submitBtn.addEventListener('click', () => {
+    if (answered) return;
+    finalize(selected);
+  });
+
+  function finalize(value) {
+    answered = true;
+    cd.cancel();
+    submitBtn.disabled = true;
+    state.answers[stage.id] = value;
+
+    const isCorrect = value !== null && value === stage.correct;
+    if (isCorrect) {
+      state.score += 1;
+      feedbackEl.classList.add('ok');
+      feedbackEl.textContent = 'Great work — that’s correct!';
     } else {
-      card.classList.add('wrong');
-      result.textContent = '✘ Not quite. The correct answer is D. All of the above.';
-      result.style.color = '#600000';
+      feedbackEl.classList.add('err');
+      feedbackEl.textContent = `Not quite — the correct answer is ${stage.correctLabel}.`;
     }
+    feedbackEl.classList.remove('hidden');
+    setTimeout(nextStage, 5000);
   }
-
-  if (scored) totalScore++;
-
-  setTimeout(function () {
-    hideStage('stage-quiz1');
-    showStage('stage-video2');
-  }, 2000);
 }
 
-/* ===== QUIZ 2 ===== */
-var selectedImageChoice = null;
-
-function selectImageChoice(choice) {
-  selectedImageChoice = choice;
-  document.querySelectorAll('.image-choice').forEach(function (el) {
-    el.classList.remove('selected');
+function renderActivityStage(host, stage) {
+  host.innerHTML = `
+    <div class="activity-card">
+      <h2>${escapeHtml(stage.title)}</h2>
+      <p>${escapeHtml(stage.intro)}</p>
+      <ul>
+        <li>${escapeHtml(stage.leadAction)} <a href="#" id="activity-forum-link" target="_blank" rel="noopener">in the Forum &rarr;</a></li>
+        <li>${escapeHtml(stage.tail)}</li>
+      </ul>
+      <div class="stage-actions" style="margin-top:16px">
+        <button class="btn-primary" id="activity-next">Continue &rarr;</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('activity-forum-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    const url = location.pathname + '#forum';
+    window.open(url, '_blank', 'noopener');
   });
-  document.getElementById('choice-' + choice.toLowerCase()).classList.add('selected');
+  document.getElementById('activity-next').addEventListener('click', nextStage);
 }
 
-function startQuiz2() {
-  hideStage('stage-video2');
-  showStage('stage-quiz2');
-  startCountdown('countdown-text2', 'countdown-bar2', function () { submitQuiz2(true); });
-}
-
-function submitQuiz2(auto) {
-  if (auto === undefined) auto = false;
-  stopCountdown();
-
-  var result = document.getElementById('q2-result');
-
-  document.querySelectorAll('.image-choice').forEach(function (el) {
-    el.style.pointerEvents = 'none';
-  });
-  document.getElementById('q2-submit').disabled = true;
-  document.getElementById('countdown-text2').textContent = '0';
-  document.getElementById('countdown-bar2').style.width = '0%';
-
-  var scored = false;
-  if (!selectedImageChoice) {
-    result.textContent = auto
-      ? "⏰ Time's up! The correct answer is B. Wholegrain cereal with yoghurt & fruit."
-      : '⚠ No answer selected. The correct answer is B.';
-    result.style.color = '#600000';
-    document.getElementById('choice-b').classList.add('choice-correct');
-  } else if (selectedImageChoice === 'B') {
-    result.textContent = '✔ Correct! Wholegrain cereal with yoghurt & fruit is much healthier.';
-    result.style.color = '#00b473';
-    document.getElementById('choice-b').classList.add('choice-correct');
-    scored = true;
+function renderEndStage(host) {
+  const r1 = state.rating1 ?? 1;
+  const r2 = state.rating2 ?? 1;
+  const delta = r2 - r1;
+  let msg;
+  if (r2 > r1) {
+    msg = 'Great — your rating has increased. This may show that you see more value in breakfast after the session.';
+  } else if (r2 < r1) {
+    msg = 'That’s okay — your rating has decreased. The session may have helped you think more critically about whether breakfast fits your own routine.';
+  } else if (r2 < 5) {
+    msg = 'Your rating has stayed the same. Breakfast may still not feel like a priority, but you now have some practical options if you choose to try it.';
   } else {
-    result.textContent = '✘ Not quite. Wholegrain cereal with yoghurt & fruit is the healthier choice.';
-    result.style.color = '#600000';
-    document.getElementById('choice-a').classList.add('choice-wrong');
-    document.getElementById('choice-b').classList.add('choice-correct');
+    msg = 'Your rating has stayed the same. You already saw breakfast as important, and this session may help you make your choices more balanced and practical.';
   }
 
-  if (scored) totalScore++;
-
-  setTimeout(function () {
-    hideStage('stage-quiz2');
-    showStage('stage-end');
-    renderScoreboard();
-  }, 2000);
+  host.innerHTML = `
+    <div class="end-grid">
+      <div class="end-card">
+        <span class="eyebrow" style="margin:0">Scoreboard</span>
+        <div class="score-display">${state.score} / 3</div>
+        <div class="end-message">Your Dora Q&amp;A score from this session.</div>
+      </div>
+      <div class="end-card">
+        <span class="eyebrow" style="margin:0">Breakfast rating change</span>
+        <div class="delta-display">${delta > 0 ? '+' : ''}${delta}</div>
+        <div class="end-message">${escapeHtml(msg)}</div>
+      </div>
+    </div>
+    <div class="end-reminder">
+      Reminder: do not forget to complete your activities and upload your photos
+      <a href="#forum" id="end-forum-link">in the Forum &rarr;</a>.
+    </div>
+  `;
+  document.getElementById('end-forum-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    showTab('forum');
+  });
 }
 
-/* ===== SCOREBOARD ===== */
-function renderScoreboard() {
-  document.getElementById('score-display').textContent = totalScore + ' / 2';
-  var labels = ['Keep practising! 💪', 'Good effort! 👍', 'Perfect score! 🎉'];
-  document.getElementById('score-label').textContent = labels[totalScore] || '';
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/'/g, '&#39;');
+}
+
+window.showTab = showTab;
