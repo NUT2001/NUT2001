@@ -1,112 +1,184 @@
-# NUT2001 — Conversation Memo
+# NUT2001 — Project Memo
 
-**Date:** 2026-04-08
+**Last updated:** 2026-05-09
 
----
+## Live site
 
-## What We Built
+- **URL:** https://nut2001.github.io/NUT2001/
+- **GitHub repo:** https://github.com/NUT2001/NUT2001 (account `NUT2001`, not the original `cxxclk`)
+- **Hosting:** GitHub Pages, `main` branch root, auto-redeploys on push
+- **Git remote auth:** HTTPS + Personal Access Token (`ghp_…`) embedded in `origin` URL
 
-Created a web project called **NUT2001** at `/home/clk/NUT2001/` for an e-learning website featuring:
+## What it is
 
-1. **Embedded video** — YouTube iframe (or local `<video>`) with a responsive 16:9 container
-2. **True/False interactions** — statement cards where the user picks True or False and gets immediate correct/wrong feedback
-3. **Multiple choice quiz** — question bank rendered dynamically from a JS data array, graded on submit with a score summary
+E-learning page for nutrition lesson "Breakfast, with Dora". Three tabs:
 
----
+| Tab | Purpose |
+|---|---|
+| **Lesson** (Home) | 7-stage video flow with two 1-10 ratings, three Dora Q&As, two activity cards, and an end scoreboard |
+| **Forum** | Real-time community feed (Firestore-backed) with image upload, hearts, post detail pages, owner moderation |
+| **Authors** | The five course authors with student IDs |
 
-## Project Structure
+## Stack
+
+- Static site (no build step). Plain HTML/CSS/JS served directly by GitHub Pages.
+- **Firebase** as the backend:
+  - **Firestore** — `posts` collection (text, image URL, likes map, comments array, createdAt)
+  - **Authentication** — Google sign-in only
+  - **Cloud Storage** — post images at `post-images/{uid}/{timestamp}-{filename}`
+  - Project: `nut2001-8a3cd`, on **Blaze plan** (required for new-project Storage, free-tier usage)
+- Web Audio API for the countdown click-tick sound (no audio file).
+- Inter + JetBrains Mono via Google Fonts (substitutes for figmaSans / figmaMono).
+
+## File layout
 
 ```
 NUT2001/
-├── index.html          — main page (header, 3 sections)
-├── DESIGN.md           — Miro design system reference
-├── claude.md           — this memo
+├── index.html            — three tabs + lesson stage host
+├── webpage.md            — product spec
+├── FigmaDesign.md        — design system reference (Figma marketing aesthetic)
+├── DESIGN.md             — older Miro design ref (no longer applied)
+├── claude.md             — this memo
+├── .gitignore            — ignores ppt-master/, .venv, .env
 ├── css/
-│   └── style.css       — all styles (Miro tokens applied)
-├── js/
-│   ├── interactions.js — True/False checkAnswer() logic
-│   └── quiz.js         — quiz data array + build + grade
-└── assets/
-    ├── videos/         — drop local .mp4 files here
-    └── images/
+│   └── style.css         — design tokens + all component styles
+└── js/
+    ├── firebase-config.js — Firebase init + OWNER_UID + module re-exports
+    ├── main.js            — tab nav + 7-stage state machine (renders each stage)
+    ├── quiz.js            — playTick() + startCountdown() helpers
+    └── community.js       — forum (auth, list, detail routing, likes, comments)
 ```
 
----
+## Lesson flow (7 stages)
 
-## Design System Applied
+The state machine is in `js/main.js`. `STAGES` is the source of truth — append/edit entries to change the flow.
 
-Fetched **DESIGN.md** from `VoltAgent/awesome-design-md` (Miro-inspired design system) and applied it to the site:
+```
+Video 1  → Rating 1 (10s, clicks)
+Video 2  → Q1 (B,  15s, clicks)
+Video 3  → Q2 (C,  15s, clicks)
+Video 4  → Q3 (A,  15s, clicks, image-choice)
+Video 5  → Activity 4 (forum link, new tab)
+Video 6  → Activity 5 (forum link, new tab)
+Video 7  → Rating 2 (10s, clicks)
+End      → Score X/3 + rating delta + reminder
+```
 
-| Token | Value |
-|---|---|
-| Primary text | `#1c1c1e` |
-| Interactive blue | `#5b76fe` |
-| Success green | `#00b473` |
-| Border | `#c7cad5` |
-| Ring shadow | `rgb(224,226,232) 0px 0px 0px 1px` |
-| Display font | Roobert PRO Medium |
-| Body font | Noto Sans |
-| Button radius | 8px |
-| Panel radius | 20px |
+After answering or timeout, feedback shows for **5 seconds**, then auto-advances. Click sound is generated per-second by `playTick()` in `js/quiz.js` (square-wave blip via Web Audio).
 
-Pastel accent sections:
-- Video → **teal** (`#c3faf5` / `#187574`)
-- Interactions → **coral** (`#ffc6c6` / `#600000`)
-- Quiz → **rose** (`#ffd8f4`)
+### Known compromises
 
----
+Documented in `webpage.md`. Drive iframe gives no JS API, so the original spec's "show question 8 seconds before video ends" and "disable fullscreen" can't be honored. The flow is button-driven via "I've finished watching →" / "Continue →".
 
-## Key Editing Points
+## Forum (Firestore schema)
 
-- **Swap video:** update the `src` on the `<iframe>` inside `#stage-video1` or `#stage-video2` in `index.html`
-- **Edit Q1 (radio):** update the `<label>` options inside `#q1-card` and set `data-correct` to the correct 0-based index
-- **Edit Q2 (image choice):** update `.image-choice` text/emoji inside `#stage-quiz2`; correct answer is hardcoded as `'B'` in `submitQuiz2()` in `js/main.js`
-- **Edit True/False questions:** update `.interaction-card` blocks in `index.html`; set `checkAnswer(this, true/false)` — `true` = this button is the correct answer
-- **Edit multiple-choice quiz:** update the `quizData` array in `js/quiz.js` (question, options[], correctIndex)
-- **Edit authors:** update `.author-card` entries in `index.html` (name, ID, initials in avatar)
+Each `posts/{id}` doc:
 
----
+```js
+{
+  author: "Display Name",
+  authorUid: "uid",
+  text: "...",
+  image: "https://firebasestorage.googleapis.com/...",  // null if no image
+  imagePath: "post-images/{uid}/...",                   // for owner-delete cleanup
+  likes: { uid1: true, uid2: false },                   // truthy = liked
+  comments: [
+    { id: "...", author: "...", authorUid: "...", text: "...", timestamp: "ISO" }
+  ],
+  createdAt: <Firestore serverTimestamp>
+}
+```
 
-## Page Rebuild (2026-04-08)
+### Routing
 
-Rebuilt the full page per `webpage.md`:
+- Forum list → URL `https://nut2001.github.io/NUT2001/`
+- Post detail → URL `…/#/post/{id}` (hash routing, handled in `community.js` `parseHash` / `goToPost`)
+- Hash change automatically swaps the list and detail views; the Forum tab activates if not already.
 
-### Tabs
-| Tab | ID | Content |
-|---|---|---|
-| Home | `tab-home` | Video → Quiz flow |
-| Dora Q&A | `tab-doraqna` | True/False + Multiple Choice |
-| Forum | `tab-forum` | Post feed with image upload & comments |
-| Authors | `tab-authors` | 5 course authors with student IDs |
+### Owner moderation
 
-### Home flow (5 stages)
-1. **Video 1** (`stage-video1`) — Google Drive iframe + "I've finished watching" button
-2. **Q1** (`stage-quiz1`) — 15s countdown, tick sound, radio options; 1 point
-3. **Video 2** (`stage-video2`) — second iframe + "I've finished watching" button
-4. **Q2** (`stage-quiz2`) — 15s countdown, tick sound, image choice cards side-by-side; 1 point
-5. **End** (`stage-end`) — scoreboard (x/2), end-of-session message, two lesson preview cards
+- Owner UID is hardcoded in `js/firebase-config.js` as `OWNER_UID = "gQVrUpGUKnNHRYYbHyIxjp2HEkt2"`.
+- When the signed-in UID matches, an `Owner` badge appears in the auth bar and 🗑️ buttons appear on every post and comment.
+- Firestore security rule for `delete` is gated to that exact UID — even if the client UI shows a 🗑️ to a non-owner (it shouldn't, but defense-in-depth), the server rejects.
 
-### Tick sound
-Generated via Web Audio API in `playTick()` (`js/main.js`) — no audio file needed.
+## Firebase rules (currently published)
 
-### Score tracking
-`totalScore` var in `js/main.js` accumulates across both questions, shown in scoreboard.
+### Firestore
 
----
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.authorUid;
+      allow update: if request.auth != null
+                    && request.resource.data.diff(resource.data)
+                       .affectedKeys().hasOnly(['comments', 'likes']);
+      allow delete: if request.auth != null
+                    && request.auth.uid == "gQVrUpGUKnNHRYYbHyIxjp2HEkt2";
+    }
+  }
+}
+```
 
-## Deployment (2026-04-08)
+### Cloud Storage
 
-- Installed **git** via `sudo apt-get install -y git`
-- Configured git: `user.name = cxxclk`, `user.email = cxxclk@gmail.com`
-- Initialized repo, committed all files, pushed to **github.com/cxxclk/NUT2001**
-- Enabled **GitHub Pages** — site is live at: https://cxxclk.github.io/NUT2001/
-- Auth: Personal Access Token (classic) with `repo` scope
+```
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /post-images/{userId}/{filename=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 8 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null
+                    && (request.auth.uid == userId
+                        || request.auth.uid == "gQVrUpGUKnNHRYYbHyIxjp2HEkt2");
+    }
+  }
+}
+```
 
-### Useful commands
+### Auth — authorized domains
+
+Both `nut2001.github.io` and the project's default `nut2001-8a3cd.firebaseapp.com` are added under Authentication → Settings → Authorized domains. Without `nut2001.github.io`, Google sign-in popup fails.
+
+## Design system
+
+`FigmaDesign.md` is the reference. Visual notes:
+
+- **Mono chrome** (black on white) for top nav, body type, all primary CTAs.
+- **Pastel color blocks** are the section device — `lime`, `lilac`, `cream`, `mint`, `pink`, `coral`, `navy`. Tabs use lime (Forum), cream (Lesson), lilac (Authors).
+- **All buttons are pills** (`border-radius: 50px`). No square buttons.
+- **Inter** + **JetBrains Mono** (Google Fonts) substitute for the proprietary `figmaSans` / `figmaMono`. Eyebrows and timestamps use the mono.
+- Tokens (colors, radii, spacing) are CSS custom properties at the top of `css/style.css`.
+
+## Deploy / edit cycle
+
 ```bash
-# Push future changes
-cd /home/clk/NUT2001
-git add .
-git commit -m "your message"
-git push
+# Edit files locally
+git add <files>
+git commit -m "..."
+git push                 # auto-triggers GitHub Pages rebuild (~1 min)
 ```
+
+## What changed from the original (April 2026) version
+
+Apr 2026 setup is documented in older notes; key shifts:
+- Account moved from `cxxclk` to `NUT2001`, repo recreated.
+- Forum migrated from `localStorage` (per-browser, not shared) → Firestore real-time + Google auth + Storage for images.
+- Visual system swapped from Miro (Roobert / teal-coral-rose) → Figma marketing (Inter / mono chrome + pastel blocks).
+- Lesson expanded from 2 videos / 2 questions → 7 videos / 2 ratings / 3 Q&As / 2 activities / scoreboard.
+- Removed `js/interactions.js` (old True/False component, no longer used).
+- Forum now has likes (heart) and per-post detail pages (`#/post/{id}` hash routing).
+
+## Known constraints
+
+- **Drive iframe** can't be controlled from JS — see "Known compromises" in `webpage.md`.
+- **Image size limit** 8 MB per post (enforced both client-side and in Storage rules).
+- **Forum quality** — Firestore rules let any signed-in user fully overwrite the `comments` and `likes` fields of any post. Acceptable for a class forum; not production-grade. Tighten via per-user dotted-path rules if needed.
+- **Token in `origin` URL** is plaintext on disk; if leaked, revoke at https://github.com/settings/tokens.
