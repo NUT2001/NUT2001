@@ -29,4 +29,4 @@ export {
 
 // Paste your Firebase Auth UID here after first sign-in. Until set, no one
 // can delete posts. Find it in Firebase Console -> Authentication -> Users.
-export const OWNER_UID = "";
+export const OWNER_UID = "gQVrUpGUKnNHRYYbHyIxjp2HEkt2";
