@@ -2,7 +2,7 @@
 
 ## Requirements
 
-1. The page title and the header brand (top-left of every page) both read **"NUT2001 Nutrition Education"**.
+1. The page title and the header brand (top-left of every page) both read **"NUT2001"** (kept short so it fits the mobile header).
 2. The homepage hero shows the heading **"Breakfast Boost"** with the subtitle **"Join Dora for short clips, quick questions, and simple breakfast tips for independent uni life."**
 3. Use the design system documented in `FigmaDesign.md` (Figma marketing aesthetic — monochrome chrome plus oversized pastel color-block sections, pill buttons, Inter / JetBrains Mono).
 4. The main page should show the embedded video, with the question card appearing below the video after the video ends or the user clicks **"I've finished watching →"**.
