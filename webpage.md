@@ -2,11 +2,12 @@
 
 ## Requirements
 
-1. The page title is "NUT2001 Nutrition Education".
-2. Use the design system documented in `FigmaDesign.md` (Figma marketing aesthetic — monochrome chrome plus oversized pastel color-block sections, pill buttons, Inter / JetBrains Mono).
-3. The main page should show the embedded video, with the question card appearing below the video after the user clicks **"I've finished watching →"**.
-4. Create a tab named **Forum** where signed-in users can post and comment on others' posts (Google sign-in required).
-5. Create a tab named **Authors** and list the following authors:
+1. The page title and the header brand (top-left of every page) both read **"NUT2001 Nutrition Education"**.
+2. The homepage hero shows the heading **"Better Breakfast, Better Uni Life"** with the subtitle **"Join Dora for short clips, quick questions, and simple breakfast tips for independent uni life."**
+3. Use the design system documented in `FigmaDesign.md` (Figma marketing aesthetic — monochrome chrome plus oversized pastel color-block sections, pill buttons, Inter / JetBrains Mono).
+4. The main page should show the embedded video, with the question card appearing below the video after the video ends or the user clicks **"I've finished watching →"**.
+5. Create a tab named **Forum** where signed-in users can post and comment on others' posts (Google sign-in required).
+6. Create a tab named **Authors** and list the following authors:
    - Linkun Chen 35967862
    - Yiu Wai Kwan 34625607
    - Pokhou Leong 34106235
@@ -15,15 +16,20 @@
 
 ---
 
-## Known Compromises (Drive iframe limitations)
+## Video Hosting & Auto-Advance
 
-The lesson videos are hosted on Google Drive and embedded via the `/preview` iframe URL. Drive's embedded player does not expose JavaScript hooks for play state, time updates, or end events, and the fullscreen control sits inside Drive's own UI (out of our reach). As a result, the following design intentions are **not** enforced in code:
+The lesson videos are intended to live in **Firebase Storage** as direct mp4 files. When `STAGES[i].src` ends in `.mp4`, the video stage renders a native `<video>` element with:
 
-- Detecting "8 seconds before the video finishes" to auto-show a question — replaced by an explicit **"I've finished watching →"** button after each video.
-- Disabling fullscreen — Drive's fullscreen button remains visible.
-- Auto-advancing 3 seconds after a video ends — replaced by a **"Continue →"** button on activity cards.
+- **Autoplay** for every video except the very first (browser autoplay policies require an initial user gesture, so video 1 stays manual).
+- **Auto-advance** to the next stage when the `ended` event fires — the user does not need to click anything.
+- A fallback **"I've finished watching →"** button is still rendered for users who want to skip ahead.
 
-If precise timing or fullscreen-blocking becomes important, host the video files directly (Firebase Storage / Cloudflare R2) and switch to a native `<video controlsList="nofullscreen">` element. The stage state machine in `js/main.js` only needs the video stage's `kind` handler swapped out.
+While the final cuts are still being edited, the placeholder videos remain on Google Drive and are embedded via the `/preview` iframe URL. Drive's embedded player does not expose JavaScript hooks for play state or end events, so during this transitional period:
+
+- Auto-advance on `ended` does **not** fire — the user must click **"I've finished watching →"**.
+- Autoplay from video 2 onward attempts `?autoplay=1` on the iframe URL but is best-effort only.
+
+Once each video is replaced with a Firebase Storage mp4 URL, the `<video>` path activates automatically — no other code change required.
 
 ---
 
@@ -46,7 +52,7 @@ This is a rating scale question. Ask the audience to choose one number from 1 to
 - After the audience selects a rating, show "Thank you for your response." and save this score as **rating 1**.
 - If the audience doesn't choose a rating, assume a rating of 1.
 
-Hide this question 5 seconds after the audience chooses an answer or the timer runs out.
+Hide this question 1 second after the audience chooses an answer or the timer runs out.
 
 ### Video 2 — Body 1
 
@@ -78,7 +84,7 @@ Provide feedback based on the audience's answer:
 - If answered correctly, show "Great work — that's correct!"
 - If answered incorrectly or no answer when timer runs out, show "Not quite — the correct answer is B."
 
-Hide this question 5 seconds after the audience chooses an answer or the timer runs out.
+Hide this question 1 second after the audience chooses an answer or the timer runs out.
 
 ### Video 3 — Body 2
 
@@ -110,7 +116,7 @@ Provide feedback based on the audience's answer:
 - If answered correctly, show "Great work — that's correct!"
 - If answered incorrectly or no answer when timer runs out, show "Not quite — the correct answer is C."
 
-Hide this question 5 seconds after the audience chooses an answer or the timer runs out.
+Hide this question 1 second after the audience chooses an answer or the timer runs out.
 
 ### Video 4 — Body 3
 
@@ -146,54 +152,20 @@ Provide feedback based on the audience's answer:
 - If answered correctly, show "Great work — that's correct!"
 - If answered incorrectly or no answer when timer runs out, show "Not quite — the correct answer is A."
 
-Hide this question 5 seconds after the audience chooses an answer or the timer runs out.
+Hide this question 1 second after the audience chooses an answer or the timer runs out.
 
-### Video 5 — Body 4
+### Video 5 — Body 4 + Body 5 + Closure (merged)
 
 After the user chooses an answer, or after the timer runs out:
 
 1. Play this video:
    https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview
-   *(Placeholder URL — to be replaced with the real Body 4 video)*
-2. After the user clicks **"I've finished watching →"**, show [Dora's activity 4](#doras-activity-4) below the video.
-
-#### Dora's activity 4
-
-During the week:
-
-- Prepare a healthy breakfast and upload it to the Forum.
-- Comment on others' posts.
-
-The Forum link opens in a **new tab**. The activity card shows a **"Continue →"** button to advance to the next video.
-
-### Video 6 — Body 5
-
-After the user clicks **"Continue →"** on Dora's activity 4:
-
-1. Play this video:
-   https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview
-   *(Placeholder URL — to be replaced with the real Body 5 video)*
-2. After the user clicks **"I've finished watching →"**, show [Dora's activity 5](#doras-activity-5) below the video.
-
-#### Dora's activity 5
-
-During the week:
-
-- Find another breakfast option on campus, take a photo and upload it to the Forum.
-- Comment on others' posts.
-
-The Forum link opens in a **new tab**. The activity card shows a **"Continue →"** button to advance to the next video.
-
-### Video 7 — Closure
-
-After the user clicks **"Continue →"** on Dora's activity 5:
-
-1. Play this video:
-   https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview
-   *(Placeholder URL — to be replaced with the real Closure video)*
-2. After the user clicks **"I've finished watching →"**, show [Breakfast rating 2](#breakfast-rating-2) below the video.
+   *(Placeholder URL — to be replaced with the real merged Body 4 / Body 5 / Closure video)*
+2. After the user clicks **"I've finished watching →"** (or the video ends, once mp4-hosted), show [Breakfast rating 2](#breakfast-rating-2) below the video.
 3. Ask the user to choose an answer with a **10-second countdown timer**.
 4. Add a **click sound** during the countdown.
+
+> The previous standalone "Dora's activity 4" and "Dora's activity 5" stages have been removed from the in-page flow. Their activities (preparing a breakfast, finding a campus breakfast option, posting and commenting) are now covered inside this merged video, and users participate via the Forum tab directly.
 
 #### Breakfast rating 2
 
@@ -206,13 +178,45 @@ This is a rating scale question. Ask the audience to choose one number from 1 to
 
 ## End of Session
 
-1. Show the audience's **scoreboard** (Q&A score, X / 3) on the left.
-2. Show the change in breakfast rating scores (rating 2 − rating 1) on the right with comments:
-   - If rating 2 > rating 1: "Great — your rating has increased. This may show that you see more value in breakfast after the session."
-   - If rating 2 < rating 1: "That's okay — your rating has decreased. The session may have helped you think more critically about whether breakfast fits your own routine."
-   - If rating 2 = rating 1 < 5: "Your rating has stayed the same. Breakfast may still not feel like a priority, but you now have some practical options if you choose to try it."
-   - If rating 2 = rating 1 ≥ 5: "Your rating has stayed the same. You already saw breakfast as important, and this session may help you make your choices more balanced and practical."
-3. Below the scoreboard and rating change, show: "Reminder: do not forget to complete your activities and upload your photos in the Forum →".
+The end screen has two cards side by side, followed by a reminder block.
+
+### Left card — SESSION SCORE
+
+Eyebrow label: **SESSION SCORE**. Show the Q&A score as `X / 3`, then a message based on the score:
+
+- **0/3** — "Thanks for taking part. These questions were a chance to explore breakfast choices — keep the key tips in mind for next time."
+- **1/3** — "Good effort. You've started thinking about breakfast choices and how they can support a healthier routine."
+- **2/3** — "Well done. You showed a good understanding of healthier breakfast choices for busy uni life."
+- **3/3** — "Excellent work. You clearly recognised how to prioritise breakfast as part of a healthy daily routine."
+
+### Right card — Breakfast Priority Check
+
+Eyebrow label: **Breakfast Priority Check**. Show three lines:
+
+- `Before the session: <rating 1>/10`
+- `After the session: <rating 2>/10`
+- `Change: <rating 2 − rating 1>` (prefixed with `+` when positive)
+
+Then show a body paragraph followed by a **Key takeaway** paragraph based on the change:
+
+- **rating 2 > rating 1** —
+  *Body:* "Your rating increased. This suggests that you may now see breakfast as a higher priority in a healthy daily routine."
+  *Key takeaway:* "Breakfast does not need to be perfect — even a quick, simple option can help support a healthier start to the day."
+- **rating 2 < rating 1** —
+  *Body:* "Your rating decreased. That is okay — reflection is about noticing your own views, not choosing the 'right' number."
+  *Key takeaway:* "Even if breakfast is not your top priority, a quick and practical option can still support your overall diet."
+- **rating 2 = rating 1 < 5** —
+  *Body:* "Your rating stayed the same. Breakfast may still feel like a low priority for you right now."
+  *Key takeaway:* "Start small — even one quick breakfast on a busy weekday can be a useful first step."
+- **rating 2 = rating 1 ≥ 5** —
+  *Body:* "Your rating stayed the same. This suggests that you already see breakfast as an important part of a healthy routine."
+  *Key takeaway:* "The next step is turning that awareness into practical breakfast choices that fit uni life."
+
+### Reminder block
+
+Below the two cards, show a visually-prominent reminder (larger text, accent left border):
+
+> Reminder: do not forget to complete your activities and upload your photos **in the Forum →**.
 
 The end-page Forum link opens in the **same tab** (switches to the Forum tab in-place).
 

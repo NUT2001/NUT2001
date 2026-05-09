@@ -11,11 +11,11 @@
 
 ## What it is
 
-E-learning page for nutrition lesson "Breakfast, with Dora". Three tabs:
+E-learning page for the nutrition lesson **"Better Breakfast, Better Uni Life"** (with Dora). The header brand and document title are both **"NUT2001 Nutrition Education"**. Hero subtitle: *"Join Dora for short clips, quick questions, and simple breakfast tips for independent uni life."* Three tabs:
 
 | Tab | Purpose |
 |---|---|
-| **Lesson** (Home) | 7-stage video flow with two 1-10 ratings, three Dora Q&As, two activity cards, and an end scoreboard |
+| **Lesson** (Home) | 5-video flow with two 1-10 ratings, three Dora Q&As, and an end summary (session score + priority check) |
 | **Forum** | Real-time community feed (Firestore-backed) with image upload, hearts, post detail pages, owner moderation |
 | **Authors** | The five course authors with student IDs |
 
@@ -44,12 +44,12 @@ NUT2001/
 │   └── style.css         — design tokens + all component styles
 └── js/
     ├── firebase-config.js — Firebase init + OWNER_UID + module re-exports
-    ├── main.js            — tab nav + 7-stage state machine (renders each stage)
+    ├── main.js            — tab nav + lesson stage state machine (renders each stage)
     ├── quiz.js            — playTick() + startCountdown() helpers
     └── community.js       — forum (auth, list, detail routing, likes, comments)
 ```
 
-## Lesson flow (7 stages)
+## Lesson flow (5 videos)
 
 The state machine is in `js/main.js`. `STAGES` is the source of truth — append/edit entries to change the flow.
 
@@ -58,17 +58,28 @@ Video 1  → Rating 1 (10s, clicks)
 Video 2  → Q1 (B,  15s, clicks)
 Video 3  → Q2 (C,  15s, clicks)
 Video 4  → Q3 (A,  15s, clicks, image-choice)
-Video 5  → Activity 4 (forum link, new tab)
-Video 6  → Activity 5 (forum link, new tab)
-Video 7  → Rating 2 (10s, clicks)
-End      → Score X/3 + rating delta + reminder
+Video 5  → Rating 2 (10s, clicks)         (merged Body 4 + Body 5 + Closure)
+End      → SESSION SCORE + Breakfast Priority Check + reminder
 ```
 
-After answering or timeout, feedback shows for **5 seconds**, then auto-advances. Click sound is generated per-second by `playTick()` in `js/quiz.js` (square-wave blip via Web Audio).
+After answering or timeout, feedback shows for **1 second**, then auto-advances to the next video. Click sound is generated per-second by `playTick()` in `js/quiz.js` (square-wave blip via Web Audio).
 
-### Known compromises
+### Video stage rendering
 
-Documented in `webpage.md`. Drive iframe gives no JS API, so the original spec's "show question 8 seconds before video ends" and "disable fullscreen" can't be honored. The flow is button-driven via "I've finished watching →" / "Continue →".
+`renderVideoStage` in `js/main.js` branches on URL:
+
+- **`.mp4` URL (Firebase Storage path)** → renders a native `<video>` with `controls playsinline preload="auto"`. Videos other than the first get the `autoplay` attribute. The `ended` event auto-advances to the next stage. A "I've finished watching →" button is also rendered as a manual fallback.
+- **Anything else (current Drive `/preview` URLs)** → renders an `<iframe>`. Videos other than the first get `?autoplay=1` appended (best-effort; Drive doesn't officially support it). Drive's iframe exposes no JS API, so auto-advance on `ended` does **not** fire — user must click the button.
+
+The plan is to host the final cuts as mp4 in Firebase Storage and replace each entry in the `VIDEOS` map; the `<video>` path then activates with no other code change.
+
+### End-of-session screen
+
+Two cards side by side, then a prominent reminder block:
+
+- **Left — SESSION SCORE** (eyebrow "SESSION SCORE"): big `X / 3`, then a score-specific message (one each for 0/1/2/3).
+- **Right — Breakfast Priority Check** (eyebrow "Breakfast Priority Check"): three lines (`Before: r1/10`, `After: r2/10`, `Change: ±d`), then a body paragraph and a **Key takeaway** paragraph chosen from four branches (`r2>r1`, `r2<r1`, `r2=r1<5`, `r2=r1≥5`).
+- **Reminder block**: 19px, accent left border, links into the Forum tab in the same tab.
 
 ## Forum (Firestore schema)
 
@@ -172,13 +183,13 @@ Apr 2026 setup is documented in older notes; key shifts:
 - Account moved from `cxxclk` to `NUT2001`, repo recreated.
 - Forum migrated from `localStorage` (per-browser, not shared) → Firestore real-time + Google auth + Storage for images.
 - Visual system swapped from Miro (Roobert / teal-coral-rose) → Figma marketing (Inter / mono chrome + pastel blocks).
-- Lesson expanded from 2 videos / 2 questions → 7 videos / 2 ratings / 3 Q&As / 2 activities / scoreboard.
+- Lesson expanded from 2 videos / 2 questions → 5 videos / 2 ratings / 3 Q&As / score + priority-check end screen (originally 7 videos with two activity cards, later trimmed when Body 4 / Body 5 / Closure were merged into one final video).
 - Removed `js/interactions.js` (old True/False component, no longer used).
 - Forum now has likes (heart) and per-post detail pages (`#/post/{id}` hash routing).
 
 ## Known constraints
 
-- **Drive iframe** can't be controlled from JS — see "Known compromises" in `webpage.md`.
+- **Drive iframe** can't be controlled from JS — auto-advance on `ended` and reliable autoplay only work after migrating each video to a Firebase Storage mp4 URL (see "Video stage rendering" above and `webpage.md`).
 - **Image size limit** 8 MB per post (enforced both client-side and in Storage rules).
 - **Forum quality** — Firestore rules let any signed-in user fully overwrite the `comments` and `likes` fields of any post. Acceptable for a class forum; not production-grade. Tighten via per-user dotted-path rules if needed.
 - **Token in `origin` URL** is plaintext on disk; if leaked, revoke at https://github.com/settings/tokens.

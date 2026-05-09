@@ -28,8 +28,6 @@ const VIDEOS = {
   v3: 'https://drive.google.com/file/d/17jl90WkbP9mHVyLkTnWBF8fIC_DXI_hP/preview',
   v4: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
   v5: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
-  v6: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
-  v7: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
 };
 
 const STAGES = [
@@ -73,20 +71,6 @@ const STAGES = [
     correct: 0, correctLabel: 'A' },
 
   { kind: 'video', src: VIDEOS.v5 },
-  { kind: 'activity',
-    title: "Dora's activity 4",
-    intro: 'During the week:',
-    leadAction: 'Prepare a healthy breakfast and upload it',
-    tail: "Comment on others' posts." },
-
-  { kind: 'video', src: VIDEOS.v6 },
-  { kind: 'activity',
-    title: "Dora's activity 5",
-    intro: 'During the week:',
-    leadAction: 'Find another breakfast option on campus, take a photo and upload it',
-    tail: "Comment on others' posts." },
-
-  { kind: 'video', src: VIDEOS.v7 },
   { kind: 'rating', id: 'rating2', timer: 10,
     prompt: 'On a scale from 1 to 10, how important is breakfast to you now?' },
 
@@ -111,21 +95,42 @@ function startStage(i) {
   if (stage.kind === 'video')    return renderVideoStage(host, stage);
   if (stage.kind === 'rating')   return renderRatingStage(host, stage);
   if (stage.kind === 'mcq')      return renderMCQStage(host, stage);
-  if (stage.kind === 'activity') return renderActivityStage(host, stage);
   if (stage.kind === 'end')      return renderEndStage(host);
 }
 
 function nextStage() { startStage(state.index + 1); }
 
 function renderVideoStage(host, stage) {
-  host.innerHTML = `
-    <div class="video-frame">
-      <iframe src="${stage.src}" allow="autoplay" allowfullscreen></iframe>
-    </div>
-    <div class="stage-actions">
-      <button class="btn-primary" id="video-done-btn">I&rsquo;ve finished watching &rarr;</button>
-    </div>
-  `;
+  const isFirstVideo = state.index === 0;
+  const isMp4 = /\.mp4($|\?)/i.test(stage.src);
+
+  if (isMp4) {
+    host.innerHTML = `
+      <div class="video-frame">
+        <video id="stage-video" ${isFirstVideo ? '' : 'autoplay'} controls playsinline preload="auto">
+          <source src="${stage.src}" type="video/mp4" />
+        </video>
+      </div>
+      <div class="stage-actions">
+        <button class="btn-primary" id="video-done-btn">I&rsquo;ve finished watching &rarr;</button>
+      </div>
+    `;
+    document.getElementById('stage-video').addEventListener('ended', () => {
+      if (window.playTick) window.playTick();
+      nextStage();
+    });
+  } else {
+    const src = isFirstVideo ? stage.src : `${stage.src}?autoplay=1`;
+    host.innerHTML = `
+      <div class="video-frame">
+        <iframe src="${src}" allow="autoplay" allowfullscreen></iframe>
+      </div>
+      <div class="stage-actions">
+        <button class="btn-primary" id="video-done-btn">I&rsquo;ve finished watching &rarr;</button>
+      </div>
+    `;
+  }
+
   document.getElementById('video-done-btn').addEventListener('click', () => {
     if (window.playTick) window.playTick();
     nextStage();
@@ -174,7 +179,7 @@ function renderRatingStage(host, stage) {
     feedbackEl.classList.remove('hidden');
     feedbackEl.classList.add('neutral');
     feedbackEl.textContent = 'Thank you for your response.';
-    setTimeout(nextStage, 5000);
+    setTimeout(nextStage, 1000);
   }
 }
 
@@ -260,58 +265,55 @@ function renderMCQStage(host, stage) {
       feedbackEl.textContent = `Not quite — the correct answer is ${stage.correctLabel}.`;
     }
     feedbackEl.classList.remove('hidden');
-    setTimeout(nextStage, 5000);
+    setTimeout(nextStage, 1000);
   }
-}
-
-function renderActivityStage(host, stage) {
-  host.innerHTML = `
-    <div class="activity-card">
-      <h2>${escapeHtml(stage.title)}</h2>
-      <p>${escapeHtml(stage.intro)}</p>
-      <ul>
-        <li>${escapeHtml(stage.leadAction)} <a href="#" id="activity-forum-link" target="_blank" rel="noopener">in the Forum &rarr;</a></li>
-        <li>${escapeHtml(stage.tail)}</li>
-      </ul>
-      <div class="stage-actions" style="margin-top:16px">
-        <button class="btn-primary" id="activity-next">Continue &rarr;</button>
-      </div>
-    </div>
-  `;
-  document.getElementById('activity-forum-link').addEventListener('click', (e) => {
-    e.preventDefault();
-    const url = location.pathname + '#forum';
-    window.open(url, '_blank', 'noopener');
-  });
-  document.getElementById('activity-next').addEventListener('click', nextStage);
 }
 
 function renderEndStage(host) {
   const r1 = state.rating1 ?? 1;
   const r2 = state.rating2 ?? 1;
   const delta = r2 - r1;
-  let msg;
+  let body, takeaway;
   if (r2 > r1) {
-    msg = 'Great — your rating has increased. This may show that you see more value in breakfast after the session.';
+    body = 'Your rating increased. This suggests that you may now see breakfast as a higher priority in a healthy daily routine.';
+    takeaway = 'Breakfast does not need to be perfect — even a quick, simple option can help support a healthier start to the day.';
   } else if (r2 < r1) {
-    msg = 'That’s okay — your rating has decreased. The session may have helped you think more critically about whether breakfast fits your own routine.';
+    body = 'Your rating decreased. That is okay — reflection is about noticing your own views, not choosing the “right” number.';
+    takeaway = 'Even if breakfast is not your top priority, a quick and practical option can still support your overall diet.';
   } else if (r2 < 5) {
-    msg = 'Your rating has stayed the same. Breakfast may still not feel like a priority, but you now have some practical options if you choose to try it.';
+    body = 'Your rating stayed the same. Breakfast may still feel like a low priority for you right now.';
+    takeaway = 'Start small — even one quick breakfast on a busy weekday can be a useful first step.';
   } else {
-    msg = 'Your rating has stayed the same. You already saw breakfast as important, and this session may help you make your choices more balanced and practical.';
+    body = 'Your rating stayed the same. This suggests that you already see breakfast as an important part of a healthy routine.';
+    takeaway = 'The next step is turning that awareness into practical breakfast choices that fit uni life.';
   }
+
+  const scoreMessages = {
+    0: 'Thanks for taking part. These questions were a chance to explore breakfast choices — keep the key tips in mind for next time.',
+    1: 'Good effort. You’ve started thinking about breakfast choices and how they can support a healthier routine.',
+    2: 'Well done. You showed a good understanding of healthier breakfast choices for busy uni life.',
+    3: 'Excellent work. You clearly recognised how to prioritise breakfast as part of a healthy daily routine.',
+  };
+  const scoreMsg = scoreMessages[state.score] ?? scoreMessages[0];
 
   host.innerHTML = `
     <div class="end-grid">
       <div class="end-card">
-        <span class="eyebrow" style="margin:0">Scoreboard</span>
+        <span class="eyebrow" style="margin:0">SESSION SCORE</span>
         <div class="score-display">${state.score} / 3</div>
-        <div class="end-message">Your Dora Q&amp;A score from this session.</div>
+        <div class="end-message">${escapeHtml(scoreMsg)}</div>
       </div>
       <div class="end-card">
-        <span class="eyebrow" style="margin:0">Breakfast rating change</span>
-        <div class="delta-display">${delta > 0 ? '+' : ''}${delta}</div>
-        <div class="end-message">${escapeHtml(msg)}</div>
+        <span class="eyebrow" style="margin:0">Breakfast Priority Check</span>
+        <div class="rating-stats">
+          <div>Before the session: ${r1}/10</div>
+          <div>After the session: ${r2}/10</div>
+          <div>Change: ${delta > 0 ? '+' : ''}${delta}</div>
+        </div>
+        <div class="end-message">
+          <p>${escapeHtml(body)}</p>
+          <p><strong>Key takeaway:</strong> ${escapeHtml(takeaway)}</p>
+        </div>
       </div>
     </div>
     <div class="end-reminder">

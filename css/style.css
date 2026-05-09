@@ -354,26 +354,34 @@ p  { margin: 0 0 var(--s-md); }
   letter-spacing: -0.02em;
   margin: var(--s-sm) 0;
 }
-.delta-display {
-  font-size: 48px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.02em;
+.rating-stats {
   margin: var(--s-sm) 0;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+.rating-stats > div:last-child {
+  font-weight: 600;
+  margin-top: var(--s-xs);
 }
 .end-message {
   margin-top: var(--s-md);
   font-size: 16px;
   line-height: 1.5;
 }
+.end-message p { margin: 0 0 var(--s-sm) 0; }
+.end-message p:last-child { margin-bottom: 0; }
 .end-reminder {
   margin-top: var(--s-xl);
-  padding: var(--s-md) var(--s-lg);
+  padding: var(--s-lg) var(--s-xl);
   background: var(--c-block-cream);
   border-radius: var(--r-md);
-  font-size: 16px;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.5;
+  border-left: 4px solid var(--c-ink);
 }
-.end-reminder a { color: var(--c-ink); text-decoration: underline; font-weight: 500; }
+.end-reminder a { color: var(--c-ink); text-decoration: underline; font-weight: 600; }
 
 /* ====== FORUM ====== */
 .forum-block { }
