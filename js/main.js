@@ -22,12 +22,14 @@ document.addEventListener('DOMContentLoaded', () => {
   startStage(0);
 });
 
+const PLACEHOLDER_VIDEO = 'https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2Fplaceholder.mp4?alt=media';
+
 const VIDEOS = {
-  v1: 'https://drive.google.com/file/d/1lpmDN-GX69J05SUz7m-oHf_gx2Byxuz_/preview',
-  v2: 'https://drive.google.com/file/d/1MxJIJrz0dgwd6CN6bZAZgFNXVydAypTn/preview',
-  v3: 'https://drive.google.com/file/d/17jl90WkbP9mHVyLkTnWBF8fIC_DXI_hP/preview',
-  v4: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
-  v5: 'https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview',
+  v1: PLACEHOLDER_VIDEO,
+  v2: PLACEHOLDER_VIDEO,
+  v3: PLACEHOLDER_VIDEO,
+  v4: PLACEHOLDER_VIDEO,
+  v5: PLACEHOLDER_VIDEO,
 };
 
 const STAGES = [
