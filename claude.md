@@ -25,7 +25,7 @@ E-learning page for the nutrition lesson **"Breakfast Boost"** (with Dora). The 
 - **Firebase** as the backend:
   - **Firestore** — `posts` collection (text, image URL, likes map, comments array, createdAt)
   - **Authentication** — Google sign-in only
-  - **Cloud Storage** — post images at `post-images/{uid}/{timestamp}-{filename}`
+  - **Cloud Storage** — post images at `post-images/{uid}/{timestamp}-{filename}`; lesson videos at `videos/<name>.mp4` (publicly readable, owner uploads via console only)
   - Project: `nut2001-8a3cd`, on **Blaze plan** (required for new-project Storage, free-tier usage)
 - Web Audio API for the countdown click-tick sound (no audio file).
 - Inter + JetBrains Mono via Google Fonts (substitutes for figmaSans / figmaMono).
@@ -140,6 +140,12 @@ service cloud.firestore {
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+
+    match /videos/{filename=**} {
+      allow read: if true;          // publicly readable
+      allow write: if false;         // owner uploads via Firebase console only
+    }
+
     match /post-images/{userId}/{filename=**} {
       allow read: if true;
       allow write: if request.auth != null
@@ -153,6 +159,14 @@ service firebase.storage {
   }
 }
 ```
+
+Lesson video URLs follow this pattern (no token needed since `read` is public):
+
+```
+https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2F<filename>.mp4?alt=media
+```
+
+Currently all 5 stages point at `videos/placeholder.mp4` while the final cuts are still being edited; replace per-stage URLs in `VIDEOS` (`js/main.js`) as each video is delivered.
 
 ### Auth — authorized domains
 
@@ -176,6 +190,20 @@ git add <files>
 git commit -m "..."
 git push                 # auto-triggers GitHub Pages rebuild (~1 min)
 ```
+
+### Cache-busting CSS / JS
+
+GitHub Pages and end-user browsers cache `css/style.css` and the JS files aggressively, so a fresh push can leave users on stale assets for hours. To force a refresh, bump the `?v=<n>` query string on the asset references in `index.html`:
+
+```html
+<link rel="stylesheet" href="css/style.css?v=3" />
+...
+<script src="js/quiz.js?v=3"></script>
+<script src="js/main.js?v=3"></script>
+<script type="module" src="js/community.js?v=3"></script>
+```
+
+Increment the number every time a CSS/JS change must take effect immediately. Last bump: **v=2** (`3837465`).
 
 ## What changed from the original (April 2026) version
 
