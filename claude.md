@@ -11,7 +11,7 @@
 
 ## What it is
 
-E-learning page for the nutrition lesson **"Better Breakfast, Better Uni Life"** (with Dora). The header brand and document title are both **"NUT2001 Nutrition Education"**. Hero subtitle: *"Join Dora for short clips, quick questions, and simple breakfast tips for independent uni life."* Three tabs:
+E-learning page for the nutrition lesson **"Breakfast Boost"** (with Dora). The header brand and document title are both **"NUT2001 Nutrition Education"**. Hero subtitle: *"Join Dora for short clips, quick questions, and simple breakfast tips for independent uni life."* Three tabs:
 
 | Tab | Purpose |
 |---|---|
