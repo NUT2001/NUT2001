@@ -22,14 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
   startStage(0);
 });
 
-const PLACEHOLDER_VIDEO = 'https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2Fplaceholder.mp4?alt=media';
-
 const VIDEOS = {
-  v1: PLACEHOLDER_VIDEO,
-  v2: PLACEHOLDER_VIDEO,
-  v3: PLACEHOLDER_VIDEO,
-  v4: PLACEHOLDER_VIDEO,
-  v5: PLACEHOLDER_VIDEO,
+  v1: 'https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%201.mp4?alt=media',
+  v2: 'https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%202.mp4?alt=media',
+  v3: 'https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%203.mp4?alt=media',
+  v4: 'https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%204.mp4?alt=media',
+  v5: 'https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%205.mp4?alt=media',
 };
 
 const STAGES = [
