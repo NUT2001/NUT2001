@@ -1,6 +1,6 @@
 # NUT2001 — Project Memo
 
-**Last updated:** 2026-05-09
+**Last updated:** 2026-05-11
 
 ## Live site
 
@@ -68,10 +68,10 @@ After answering or timeout, feedback shows for **1 second**, then auto-advances 
 
 `renderVideoStage` in `js/main.js` branches on URL:
 
-- **`.mp4` URL (Firebase Storage path)** → renders a native `<video>` with `controls playsinline preload="auto"`. Videos other than the first get the `autoplay` attribute. The `ended` event auto-advances to the next stage. A "I've finished watching →" button is also rendered as a manual fallback.
-- **Anything else (current Drive `/preview` URLs)** → renders an `<iframe>`. Videos other than the first get `?autoplay=1` appended (best-effort; Drive doesn't officially support it). Drive's iframe exposes no JS API, so auto-advance on `ended` does **not** fire — user must click the button.
+- **`.mp4` URL (Firebase Storage path)** — current path for all 5 stages. Renders a native `<video>` with `controls playsinline preload="auto"`. Videos other than the first get the `autoplay` attribute. The `ended` event auto-advances to the next stage. A "I've finished watching →" button is also rendered as a manual fallback.
+- **Anything else (legacy Drive `/preview` URLs)** — fallback path, no longer used. Would render an `<iframe>` with `?autoplay=1` appended on videos 2+ (best-effort). Drive's iframe exposes no JS API, so auto-advance on `ended` would **not** fire — user must click the button.
 
-The plan is to host the final cuts as mp4 in Firebase Storage and replace each entry in the `VIDEOS` map; the `<video>` path then activates with no other code change.
+All 5 lessons (`v1`–`v5`) are now hosted as mp4 in Firebase Storage at `videos/Part 1.mp4` … `videos/Part 5.mp4`; the `<video>` path is active.
 
 ### End-of-session screen
 
@@ -105,6 +105,7 @@ Each `posts/{id}` doc:
 - Forum list → URL `https://nut2001.github.io/NUT2001/`
 - Post detail → URL `…/#/post/{id}` (hash routing, handled in `community.js` `parseHash` / `goToPost`)
 - Hash change automatically swaps the list and detail views; the Forum tab activates if not already.
+- Post detail page has a **← Back to lesson** button (`index.html:78`) that calls `showTab('home')` to jump back to the Lesson tab.
 
 ### Owner moderation
 
@@ -166,7 +167,7 @@ Lesson video URLs follow this pattern (no token needed since `read` is public):
 https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2F<filename>.mp4?alt=media
 ```
 
-Currently all 5 stages point at `videos/placeholder.mp4` while the final cuts are still being edited; replace per-stage URLs in `VIDEOS` (`js/main.js`) as each video is delivered.
+All 5 stages now point at the real cuts (`videos/Part 1.mp4` … `videos/Part 5.mp4`) in `VIDEOS` (`js/main.js`). To swap any video, re-upload at the same Storage path (overwrite) or upload to a new path and update the matching entry in `VIDEOS`.
 
 ### Auth — authorized domains
 
@@ -217,7 +218,6 @@ Apr 2026 setup is documented in older notes; key shifts:
 
 ## Known constraints
 
-- **Drive iframe** can't be controlled from JS — auto-advance on `ended` and reliable autoplay only work after migrating each video to a Firebase Storage mp4 URL (see "Video stage rendering" above and `webpage.md`).
 - **Image size limit** 8 MB per post (enforced both client-side and in Storage rules).
 - **Forum quality** — Firestore rules let any signed-in user fully overwrite the `comments` and `likes` fields of any post. Acceptable for a class forum; not production-grade. Tighten via per-user dotted-path rules if needed.
 - **Token in `origin` URL** is plaintext on disk; if leaked, revoke at https://github.com/settings/tokens.

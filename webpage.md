@@ -18,18 +18,19 @@
 
 ## Video Hosting & Auto-Advance
 
-The lesson videos are intended to live in **Firebase Storage** as direct mp4 files. When `STAGES[i].src` ends in `.mp4`, the video stage renders a native `<video>` element with:
+The lesson videos live in **Firebase Storage** as direct mp4 files at `videos/Part 1.mp4` through `videos/Part 5.mp4`. When `STAGES[i].src` ends in `.mp4`, the video stage renders a native `<video>` element with:
 
 - **Autoplay** for every video except the very first (browser autoplay policies require an initial user gesture, so video 1 stays manual).
 - **Auto-advance** to the next stage when the `ended` event fires — the user does not need to click anything.
 - A fallback **"I've finished watching →"** button is still rendered for users who want to skip ahead.
 
-While the final cuts are still being edited, the placeholder videos remain on Google Drive and are embedded via the `/preview` iframe URL. Drive's embedded player does not expose JavaScript hooks for play state or end events, so during this transitional period:
+The Storage URLs follow the public-read pattern (no token):
 
-- Auto-advance on `ended` does **not** fire — the user must click **"I've finished watching →"**.
-- Autoplay from video 2 onward attempts `?autoplay=1` on the iframe URL but is best-effort only.
+```
+https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%20<n>.mp4?alt=media
+```
 
-Once each video is replaced with a Firebase Storage mp4 URL, the `<video>` path activates automatically — no other code change required.
+To swap a video, either overwrite the file at the same Storage path (no code change) or upload to a new path and update the matching entry in `VIDEOS` in `js/main.js`.
 
 ---
 
@@ -38,8 +39,8 @@ Once each video is replaced with a Firebase Storage mp4 URL, the `<video>` path 
 ### Video 1 — Set the scene
 
 1. Play this video:
-   https://drive.google.com/file/d/1lpmDN-GX69J05SUz7m-oHf_gx2Byxuz_/preview
-2. After the user clicks **"I've finished watching →"**, show [Breakfast rating 1](#breakfast-rating-1) below the video.
+   https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%201.mp4?alt=media
+2. When the video ends (or the user clicks **"I've finished watching →"**), show [Breakfast rating 1](#breakfast-rating-1) below the video.
 3. Ask the user to choose an answer with a **10-second countdown timer**.
 4. Add a **click sound** during the countdown (synthesised via Web Audio).
 
@@ -59,8 +60,8 @@ Hide this question 1 second after the audience chooses an answer or the timer ru
 After the user chooses an answer, or after the timer runs out:
 
 1. Play this video:
-   https://drive.google.com/file/d/1MxJIJrz0dgwd6CN6bZAZgFNXVydAypTn/preview
-2. After the user clicks **"I've finished watching →"**, show [Dora's Q&A 1](#doras-qa-1) below the video.
+   https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%202.mp4?alt=media
+2. When the video ends (or the user clicks **"I've finished watching →"**), show [Dora's Q&A 1](#doras-qa-1) below the video.
 3. Ask the user to choose an answer with a **15-second countdown timer**.
 4. Add a **click sound** during the countdown.
 
@@ -91,8 +92,8 @@ Hide this question 1 second after the audience chooses an answer or the timer ru
 After the user chooses an answer, or after the timer runs out:
 
 1. Play this video:
-   https://drive.google.com/file/d/17jl90WkbP9mHVyLkTnWBF8fIC_DXI_hP/preview
-2. After the user clicks **"I've finished watching →"**, show [Dora's Q&A 2](#doras-qa-2) below the video.
+   https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%203.mp4?alt=media
+2. When the video ends (or the user clicks **"I've finished watching →"**), show [Dora's Q&A 2](#doras-qa-2) below the video.
 3. Ask the user to choose an answer with a **15-second countdown timer**.
 4. Add a **click sound** during the countdown.
 
@@ -123,9 +124,8 @@ Hide this question 1 second after the audience chooses an answer or the timer ru
 After the user chooses an answer, or after the timer runs out:
 
 1. Play this video:
-   https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview
-   *(Placeholder URL — to be replaced with the real Body 3 video)*
-2. After the user clicks **"I've finished watching →"**, show [Dora's Q&A 3](#doras-qa-3) below the video.
+   https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%204.mp4?alt=media
+2. When the video ends (or the user clicks **"I've finished watching →"**), show [Dora's Q&A 3](#doras-qa-3) below the video.
 3. Ask the user to choose an answer with a **15-second countdown timer**.
 4. Add a **click sound** during the countdown.
 
@@ -159,9 +159,8 @@ Hide this question 1 second after the audience chooses an answer or the timer ru
 After the user chooses an answer, or after the timer runs out:
 
 1. Play this video:
-   https://drive.google.com/file/d/16xChEg5kiUJ-_t1Pxw_94BaNnWctIGgD/preview
-   *(Placeholder URL — to be replaced with the real merged Body 4 / Body 5 / Closure video)*
-2. After the user clicks **"I've finished watching →"** (or the video ends, once mp4-hosted), show [Breakfast rating 2](#breakfast-rating-2) below the video.
+   https://firebasestorage.googleapis.com/v0/b/nut2001-8a3cd.firebasestorage.app/o/videos%2FPart%205.mp4?alt=media
+2. When the video ends (or the user clicks **"I've finished watching →"**), show [Breakfast rating 2](#breakfast-rating-2) below the video.
 3. Ask the user to choose an answer with a **10-second countdown timer**.
 4. Add a **click sound** during the countdown.
 
@@ -240,6 +239,7 @@ The end-page Forum link opens in the **same tab** (switches to the Forum tab in-
 - Heart like button with full like count.
 - Full comment list.
 - Comment input (signed-in users only) — replies appear immediately via Firestore real-time updates.
+- A **← Back to lesson** button at the bottom returns the user to the Lesson tab.
 
 ### Posting
 
